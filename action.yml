@@ -17,15 +17,17 @@ runs:
     - name: Setup Koka
       run: | 
         curl -sSL https://github.com/koka-lang/koka/releases/download/v3.1.3/install.sh | sh -s -- --prefix=~/.kokac --force
-        echo "$HOME/local/bin" >> $GITHUB_PATH
       shell: bash
+    # TODO: Setup vcpkg
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
     - name: Install Koka Packages
-      run: install.sh ${{ inputs.packages }}
+      run: |
+        install.sh ${{ inputs.packages }}
+        echo "$HOME/local/bin" >> $GITHUB_PATH
       shell: bash
     - name: Run Koka Tests
       if: inputs.run_tests == 'true'

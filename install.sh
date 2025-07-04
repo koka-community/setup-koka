@@ -13,7 +13,7 @@ for package in $1; do
   git clone git@github.com:koka-community/$package.git ~/packages/$package
 done
   
-echo "Creating Koka alias... $includes"
+echo "Creating Koka alias with default include paths ($includes)"
 mkdir -p $HOME/.local/bin
 echo "$HOME/.kokac/bin/koka $includes \$@" > $HOME/.local/bin/koka
 chmod +x $HOME/.local/bin/koka
