@@ -14,6 +14,6 @@ for package in $1; do
 done
   
 echo "Creating Koka alias... $includes"
-mkdir -p $HOME/local/bin
+mkdir -p $HOME/.local/bin
 echo "$HOME/.kokac/bin/koka $includes \$@" > $HOME/.local/bin/koka
 chmod +x $HOME/.local/bin/koka
