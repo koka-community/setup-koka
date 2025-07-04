@@ -1,0 +1,29 @@
+name: 'Setup Koka'
+description: 'Setup Koka Environment (on Linux, macOS for now)'
+inputs:
+  packages:  # id of input
+    description: 'Packages to install, space-separated list of package names'
+    required: false
+    default: "std"
+    type: string
+  run_tests:
+    description: 'Run tests after setup'
+    required: false
+    default: 'false'
+    type: boolean
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Koka
+      run: | 
+        curl -sSL https://github.com/koka-lang/koka/releases/download/v3.1.3/install.sh | sh -s -- --prefix=~/.kokac --force
+        echo "$HOME/local/bin" >> $GITHUB_PATH
+    - name: Install Koka Packages
+      run: ./install.sh ${{ inputs.packages }}
+    - name: Run Koka Tests
+      if: inputs.run_tests == 'true'
+      run: |
+        echo "Running Koka tests..."
+        koka -e std/test/detect
+      
+
