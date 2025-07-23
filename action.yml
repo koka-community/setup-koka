@@ -16,7 +16,7 @@ runs:
   steps:
     - name: Setup Koka
       run: |
-        curl -sSL https://github.com/koka-lang/koka/releases/download/v3.2.0/install.sh | sh -s -- --prefix=~/.kokac --force
+        curl -sSL https://github.com/koka-lang/koka/releases/download/v3.2.2/install.sh | sh -s -- --prefix=~/.kokac --force
       shell: bash
     # TODO: Setup vcpkg
     - name: Set GitHub Path
