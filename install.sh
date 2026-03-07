@@ -10,7 +10,7 @@ for package in $1; do
     continue
   fi 
   echo "Cloning package $package..."
-  git clone git@github.com:koka-community/$package.git ~/packages/$package
+  git clone https://github.com/koka-community/$package.git ~/packages/$package
 done
   
 echo "Creating Koka alias with default include paths ($includes)"
