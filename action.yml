@@ -7,9 +7,14 @@ inputs:
     default: "std"
     type: string
   koka_version:
-    description: 'Koka version'
+    description: 'Koka version (ignored if koka_ref is set)'
     required: false
     default: "3.2.2"
+    type: string
+  koka_ref:
+    description: 'Koka ref (development version)'
+    required: false
+    default: ""
     type: string
   run_tests:
     description: 'Run tests after setup'
@@ -19,10 +24,50 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Koka
+
+    # Release steps
+    - name: Setup Koka (release)
+      if: inputs.koka_ref == ''
       run: |
         curl -sSL https://github.com/koka-lang/koka/releases/download/v${{ inputs.koka_version }}/install.sh | sh -s -- --prefix=~/.kokac --force
       shell: bash
+
+    # Development steps
+    - name: Checkout Koka
+      id: checkout-koka
+      if: inputs.koka_ref != ''
+      uses: actions/checkout@v6
+      with:
+        repository: 'koka-lang/koka'
+        ref: ${{ inputs.koka_ref }}
+        path: tmp-koka
+        submodules: recursive
+    - name: Restore cache
+      id: cache-koka-restore
+      if: inputs.koka_ref != ''
+      uses: actions/cache/restore@v5
+      with:
+        path: ~/.kokac
+        key: ${{ steps.checkout-koka.outputs.commit }}-bin
+    - name: Install Koka
+      if: inputs.koka_ref != '' && steps.cache-koka-restore.outputs.cache-hit != 'true'
+      working-directory: tmp-koka
+      run: |
+        stack run -- -e util/bundle -- --install --prefix=$HOME/.kokac
+      shell: bash
+    - name: Remove temporary checkout
+      if: inputs.koka_ref != ''
+      shell: bash
+      run: |
+        rm -rf tmp-koka
+    - name: Save cache
+      if: inputs.koka_ref != '' && steps.cache-koka-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: ~/.kokac
+        key: ${{ steps.cache-koka-restore.outputs.cache-primary-key }}
+
+    # Common setup steps
     # TODO: Setup vcpkg
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
@@ -40,5 +85,4 @@ runs:
       run: |
         echo "Running Koka tests..."
         koka -e std/test/detect
-      
 
