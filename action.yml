@@ -6,6 +6,11 @@ inputs:
     required: false
     default: "std"
     type: string
+  koka_version:
+    description: 'Koka version'
+    required: false
+    default: "3.2.2"
+    type: string
   run_tests:
     description: 'Run tests after setup'
     required: false
@@ -16,7 +21,7 @@ runs:
   steps:
     - name: Setup Koka
       run: |
-        curl -sSL https://github.com/koka-lang/koka/releases/download/v3.2.2/install.sh | sh -s -- --prefix=~/.kokac --force
+        curl -sSL https://github.com/koka-lang/koka/releases/download/v${{ inputs.koka_version }}/install.sh | sh -s -- --prefix=~/.kokac --force
       shell: bash
     # TODO: Setup vcpkg
     - name: Set GitHub Path
