@@ -6,6 +6,11 @@ inputs:
     required: false
     default: "std"
     type: string
+  koka_repository:
+    description: 'Koka repository (defaults to koka-lang/koka)'
+    required: false
+    default: "koka-lang/koka"
+    type: string
   koka_version:
     description: 'Koka version (ignored if koka_ref is set)'
     required: false
@@ -21,34 +26,45 @@ inputs:
     required: false
     default: 'false'
     type: boolean
+
 runs:
   using: "composite"
   steps:
 
+    # ======================
     # Release steps
+    # ======================
     - name: Setup Koka (release)
       if: inputs.koka_ref == ''
       run: |
-        curl -sSL https://github.com/koka-lang/koka/releases/download/v${{ inputs.koka_version }}/install.sh | sh -s -- --prefix=~/.kokac --force
+        curl -sSL "https://github.com/koka-lang/koka/releases/download/v${{ inputs.koka_version }}/install.sh" | sh -s -- --prefix=~/.kokac --force
       shell: bash
 
+    # ======================
     # Development steps
+    # ======================
     - name: Checkout Koka
-      id: checkout-koka
       if: inputs.koka_ref != ''
+      id: checkout-koka
       uses: actions/checkout@v6
       with:
-        repository: 'koka-lang/koka'
+        repository: ${{ inputs.koka_repository }}
         ref: ${{ inputs.koka_ref }}
         path: tmp-koka
         submodules: recursive
     - name: Restore cache
-      id: cache-koka-restore
       if: inputs.koka_ref != ''
+      id: cache-koka-restore
       uses: actions/cache/restore@v5
       with:
         path: ~/.kokac
-        key: ${{ steps.checkout-koka.outputs.commit }}-bin
+        key: koka-${{ steps.checkout-koka.outputs.commit }}-bin
+    - uses: freckle/stack-action@v5
+      if: inputs.koka_ref != '' && steps.cache-koka-restore.outputs.cache-hit != 'true'
+      with:
+        test: false
+        working-directory: tmp-koka
+        stack-build-arguments: --fast
     - name: Install Koka
       if: inputs.koka_ref != '' && steps.cache-koka-restore.outputs.cache-hit != 'true'
       working-directory: tmp-koka
@@ -67,7 +83,10 @@ runs:
         path: ~/.kokac
         key: ${{ steps.cache-koka-restore.outputs.cache-primary-key }}
 
+
+    # ======================
     # Common setup steps
+    # ======================
     # TODO: Setup vcpkg
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
